@@ -1,0 +1,14 @@
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/kacperekprojekt.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/list_install_components.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/install.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/install/local.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/CMakeFiles/install/strip.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/fmt.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/edit_cache.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/rebuild_cache.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/list_install_components.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/install.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/install/local.dir
+/Users/artur/Desktop/nauka/kacperekprojekt/cmake-build-debug/fmt/CMakeFiles/install/strip.dir

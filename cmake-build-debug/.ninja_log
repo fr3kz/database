@@ -1,0 +1,6 @@
+# ninja log v5
+0	643	1703419132709774320	CMakeFiles/kacperekprojekt.dir/main.cpp.o	1c06858e78bb5f0d
+0	779	1703419132847592478	fmt/CMakeFiles/fmt.dir/src/os.cc.o	a41c470acfd27f88
+0	1267	1703419133333712179	fmt/CMakeFiles/fmt.dir/src/format.cc.o	341cdc30b4fcb980
+1267	1378	1703419133451582000	fmt/libfmtd.a	2e31a64500edb116
+1378	1517	1703419133587373559	kacperekprojekt	45cc70f54b71cf99
