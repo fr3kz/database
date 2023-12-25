@@ -195,12 +195,12 @@ int main() {
                 fmt::print("Error: Missing table name for update command\n");
             }
 
-            // Collect columns to update
+
             std::map<std::string, std::string> updateData;
             std::string colName, colValue, colInfo;
 
             while (iss >> colInfo) {
-                // Handle spaces before and after commas
+
                 size_t commaPos = colInfo.find(',');
                 while (commaPos != std::string::npos && commaPos == 0) {
                     iss >> colInfo; // Skip the comma
@@ -213,15 +213,13 @@ int main() {
                     colValue = colInfo.substr(colonPos + 1);
                     updateData[colName] = colValue;
                 } else if (colInfo == "where") {
-                    break; // Exit the loop when "where" is encountered
+                    break;
                 } else {
                     fmt::print("Error: Invalid column format in command\n");
                 }
             }
 
-            // Check if there is a "where" condition
 
-                // Collect conditions for the WHERE clause
                 std::map<std::string, std::string> whereClause;
 
                 while (iss >> colInfo) {
@@ -235,8 +233,7 @@ int main() {
                     }
                 }
 
-                // Now you have the map "updateData" with columns to update
-                // and the map "whereClause" with conditions for the WHERE clause
+
                 database.updatedata(tableName, updateData, whereClause);
 
         }
