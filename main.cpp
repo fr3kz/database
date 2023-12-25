@@ -99,6 +99,40 @@ public:
             fmt::print("Error: Table {} not found\n", tableName);
         }
     }
+    void updatedata(const std::string& tableName, const std::map<std::string, std::string>& updateData, const std::map<std::string, std::string>& whereClause) {
+        auto it = tables.find(tableName);
+
+        if (it != tables.end()) {
+            // Iterate through rows
+            for (auto& row : it->second.rows) {
+                // Check if the row satisfies the WHERE clause conditions
+                bool whereConditionSatisfied = true;
+                for (const auto& whereEntry : whereClause) {
+                    auto columnIt = row.find(whereEntry.first);
+                    if (columnIt != row.end() && columnIt->second != whereEntry.second) {
+                        whereConditionSatisfied = false;
+                        break;
+                    }
+                }
+
+                // If WHERE condition is satisfied, update the specified columns
+                if (whereConditionSatisfied) {
+                    for (const auto& entry : updateData) {
+                        auto columnIt = row.find(entry.first);
+                        if (columnIt != row.end()) {
+                            columnIt->second = entry.second;
+                        } else {
+                            fmt::print("Error: Column {} not found in table {}\n", entry.first, tableName);
+                            return;
+                        }
+                    }
+                    fmt::print("Data updated in table {}\n", tableName);
+                }
+            }
+        } else {
+            fmt::print("Error: Table {} not found\n", tableName);
+        }
+    }
 
     void saveToBackup(const std::string& filename) {
         saveToFile(filename);
@@ -155,6 +189,56 @@ int main() {
             }
 
             database.insertData(tableName, data);
+        }else if (cmd == "update") {
+            std::string tableName;
+            if (!(iss >> tableName)) {
+                fmt::print("Error: Missing table name for update command\n");
+            }
+
+            // Collect columns to update
+            std::map<std::string, std::string> updateData;
+            std::string colName, colValue, colInfo;
+
+            while (iss >> colInfo) {
+                // Handle spaces before and after commas
+                size_t commaPos = colInfo.find(',');
+                while (commaPos != std::string::npos && commaPos == 0) {
+                    iss >> colInfo; // Skip the comma
+                    commaPos = colInfo.find(',');
+                }
+
+                size_t colonPos = colInfo.find(':');
+                if (colonPos != std::string::npos) {
+                    colName = colInfo.substr(0, colonPos);
+                    colValue = colInfo.substr(colonPos + 1);
+                    updateData[colName] = colValue;
+                } else if (colInfo == "where") {
+                    break; // Exit the loop when "where" is encountered
+                } else {
+                    fmt::print("Error: Invalid column format in command\n");
+                }
+            }
+
+            // Check if there is a "where" condition
+
+                // Collect conditions for the WHERE clause
+                std::map<std::string, std::string> whereClause;
+
+                while (iss >> colInfo) {
+                    size_t colonPos = colInfo.find(':');
+                    if (colonPos != std::string::npos) {
+                        colName = colInfo.substr(0, colonPos);
+                        colValue = colInfo.substr(colonPos + 1);
+                        whereClause[colName] = colValue;
+                    } else {
+                        fmt::print("Error: Invalid column format in WHERE clause\n");
+                    }
+                }
+
+                // Now you have the map "updateData" with columns to update
+                // and the map "whereClause" with conditions for the WHERE clause
+                database.updatedata(tableName, updateData, whereClause);
+
         }
 
         else if (cmd == "save") {
@@ -176,6 +260,9 @@ int main() {
 
 createTable Employees ID int Name string Salary double Department string
         insert Employees ID:1 Name:John Salary:50000 Department:HR
+        update Employees Name:Artur ,where ID:1
+
+
 save a.txt
 
 exit

@@ -1,0 +1,6 @@
+Table: Employees
+  ID (int)
+  Name (string)
+  Salary (double)
+  Department (string)
+  row ID:1, Name:, Salary:, Department:, 
