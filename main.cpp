@@ -11,10 +11,48 @@ struct Column {
     std::string type;
 };
 
+class SimpleDatabase;
+
 struct Table {
+    friend class SimpleDatabase;
+
+private:
     std::string name;
     std::vector<Column> columns;
     std::vector<std::map<std::string, std::string>> rows;
+
+    std::string getColumnType(const std::string& columnName) const {
+        for (const auto& column : columns) {
+            if (column.name == columnName) {
+                return column.type;
+            }
+        }
+        return "";
+    }
+
+public:
+    Table() {}
+
+    Table(const std::string& tableName, const std::vector<Column>& tableColumns) : name(tableName), columns(tableColumns) {}
+
+    void createRow(const std::map<std::string, std::string>& data) {
+        std::map<std::string, std::string> newRow;
+        for (const auto& column : columns) {
+            newRow[column.name] = "";
+        }
+
+        for (const auto& entry : data) {
+            auto columnIt = newRow.find(entry.first);
+            if (columnIt != newRow.end()) {
+                columnIt->second = entry.second;
+            } else {
+                fmt::print("Error: Column {} not found in table {}\n", entry.first, name);
+                return;
+            }
+        }
+
+        rows.push_back(newRow);
+    }
 };
 
 class SimpleDatabase {
@@ -46,9 +84,7 @@ private:
 
 public:
     void createTable(const std::string& tableName, const std::vector<Column>& columns) {
-        Table table;
-        table.name = tableName;
-        table.columns = columns;
+        Table table(tableName, columns);
         tables[tableName] = table;
         fmt::print("Table {} created\n", tableName);
     }
@@ -63,9 +99,6 @@ public:
 
             if (columnIt == it->second.columns.end()) {
                 it->second.columns.push_back(newColumn);
-                for (auto& row : it->second.rows) {
-                    row[newColumn.name] = "";
-                }
                 fmt::print("Column {} added to table {}\n", newColumn.name, tableName);
             } else {
                 fmt::print("Error: Column {} already exists in table {}\n", newColumn.name, tableName);
@@ -78,61 +111,139 @@ public:
     void insertData(const std::string& tableName, const std::map<std::string, std::string>& data) {
         auto it = tables.find(tableName);
         if (it != tables.end()) {
-            std::map<std::string, std::string> newRow;
-            for (const auto& column : it->second.columns) {
-                newRow[column.name] = "";
-            }
-
-            for (const auto& entry : data) {
-                auto columnIt = newRow.find(entry.first);
-                if (columnIt != newRow.end()) {
-                    columnIt->second = entry.second;
-                } else {
-                    fmt::print("Error: Column {} not found in table {}\n", entry.first, tableName);
-                    return;
-                }
-            }
-
-            it->second.rows.push_back(newRow);
+            it->second.createRow(data);
             fmt::print("Data inserted into table {}\n", tableName);
         } else {
             fmt::print("Error: Table {} not found\n", tableName);
         }
     }
-    void updatedata(const std::string& tableName, const std::map<std::string, std::string>& updateData, const std::map<std::string, std::string>& whereClause) {
+
+    void updateData(const std::string& tableName, const std::map<std::string, std::string>& updateData, const std::map<std::string, std::string>& whereClause) {
         auto it = tables.find(tableName);
 
         if (it != tables.end()) {
-            // Iterate through rows
             for (auto& row : it->second.rows) {
-                // Check if the row satisfies the WHERE clause conditions
                 bool whereConditionSatisfied = true;
+
                 for (const auto& whereEntry : whereClause) {
                     auto columnIt = row.find(whereEntry.first);
-                    if (columnIt != row.end() && columnIt->second != whereEntry.second) {
+                    if (columnIt == row.end() || columnIt->second != whereEntry.second) {
                         whereConditionSatisfied = false;
                         break;
                     }
                 }
 
-                // If WHERE condition is satisfied, update the specified columns
                 if (whereConditionSatisfied) {
                     for (const auto& entry : updateData) {
                         auto columnIt = row.find(entry.first);
                         if (columnIt != row.end()) {
-                            columnIt->second = entry.second;
+                            if (it->second.getColumnType(entry.first) == "int") {
+                                columnIt->second = std::to_string(std::stoi(entry.second));
+                            } else if (it->second.getColumnType(entry.first) == "double") {
+                                columnIt->second = std::to_string(std::stod(entry.second));
+                            } else {
+                                columnIt->second = entry.second;
+                            }
                         } else {
                             fmt::print("Error: Column {} not found in table {}\n", entry.first, tableName);
                             return;
                         }
                     }
-                    fmt::print("Data updated in table {}\n", tableName);
                 }
             }
+
+            fmt::print("Data updated in table {}\n", tableName);
         } else {
             fmt::print("Error: Table {} not found\n", tableName);
         }
     }
+
+    void deleteData( std::string& tableName, std::map<std::string, std::string>& whereClause) {
+        auto it = tables.find(tableName);
+
+        if (it != tables.end()) {
+            for (auto rowIt = it->second.rows.begin(); rowIt != it->second.rows.end();) {
+                bool whereConditionSatisfied = true;
+
+                for (const auto& whereEntry : whereClause) {
+                    auto columnIt = rowIt->find(whereEntry.first);
+                    if (columnIt == rowIt->end() || columnIt->second != whereEntry.second) {
+                        whereConditionSatisfied = false;
+                        break;
+                    }
+                }
+
+                if (whereConditionSatisfied) {
+                    rowIt = it->second.rows.erase(rowIt);
+                } else {
+                    ++rowIt;
+                }
+            }
+
+            fmt::print("Data deleted from table {}\n", tableName);
+        } else {
+            fmt::print("Error: Table {} not found\n", tableName);
+        }
+    }
+
+    void query(const std::string& tableName, const std::vector<std::string>& selectClause, const std::map<std::string, std::string>& whereClause) {
+        auto it = tables.find(tableName);
+
+        if (it != tables.end()) {
+            if (selectClause.empty()) {
+                for (const auto& column : it->second.columns) {
+                    std::cout << column.name << "\t";
+                }
+            } else {
+                for (const auto& col : selectClause) {
+                    std::cout << col << "\t";
+                }
+            }
+            std::cout << "\n";
+
+            for (const auto& row : it->second.rows) {
+                bool whereConditionSatisfied = true;
+
+                for (const auto& whereEntry : whereClause) {
+                    auto columnIt = row.find(whereEntry.first);
+                    if (columnIt == row.end() || columnIt->second != whereEntry.second) {
+                        whereConditionSatisfied = false;
+                        break;
+                    }
+                }
+
+                if (whereConditionSatisfied) {
+                    if (selectClause.empty()) {
+                        for (const auto& column : it->second.columns) {
+                            auto columnIt = row.find(column.name);
+                            if (columnIt != row.end()) {
+                                std::cout << columnIt->second << "\t";
+                            } else {
+                                fmt::print("Error: Column {} not found in table {}\n", column.name, tableName);
+                                return;
+                            }
+                        }
+                    } else {
+                        for (const auto& col : selectClause) {
+                            auto columnIt = row.find(col);
+                            if (columnIt != row.end()) {
+                                std::cout << columnIt->second << "\t";
+                            } else {
+                                fmt::print("Error: Column {} not found in table {}\n", col, tableName);
+                                return;
+                            }
+                        }
+                    }
+                    std::cout << "\n";
+                }
+            }
+
+            fmt::print("Query executed for table {}\n", tableName);
+        } else {
+            fmt::print("Error: Table {} not found\n", tableName);
+        }
+    }
+
 
     void saveToBackup(const std::string& filename) {
         saveToFile(filename);
@@ -189,55 +300,103 @@ int main() {
             }
 
             database.insertData(tableName, data);
-        }else if (cmd == "update") {
+        } else if (cmd == "update") {
             std::string tableName;
             if (!(iss >> tableName)) {
                 fmt::print("Error: Missing table name for update command\n");
+                continue;
             }
 
-
             std::map<std::string, std::string> updateData;
-            std::string colName, colValue, colInfo;
+            std::map<std::string, std::string> whereClause;
+
+            std::string colInfo;
+            bool isWhereClause = false;
 
             while (iss >> colInfo) {
-
-                size_t commaPos = colInfo.find(',');
-                while (commaPos != std::string::npos && commaPos == 0) {
-                    iss >> colInfo; // Skip the comma
-                    commaPos = colInfo.find(',');
+                if (colInfo == "where") {
+                    isWhereClause = true;
+                    continue;
                 }
 
                 size_t colonPos = colInfo.find(':');
                 if (colonPos != std::string::npos) {
-                    colName = colInfo.substr(0, colonPos);
-                    colValue = colInfo.substr(colonPos + 1);
-                    updateData[colName] = colValue;
-                } else if (colInfo == "where") {
-                    break;
+                    std::string colName = colInfo.substr(0, colonPos);
+                    std::string colValue = colInfo.substr(colonPos + 1);
+
+                    if (isWhereClause) {
+                        whereClause[colName] = colValue;
+                    } else {
+                        updateData[colName] = colValue;
+                    }
                 } else {
                     fmt::print("Error: Invalid column format in command\n");
+                    break;
+                }
+            }
+
+            database.updateData(tableName, updateData, whereClause);
+        }else if (cmd == "query") {
+            std::string tablename;
+            iss >> tablename;
+
+            std::map<std::string, std::string> whereClause;
+            std::vector<std::string> selectClause;
+
+            std::string colInfo;
+            bool isWhereClause = false;
+            while (iss >> colInfo) {
+                size_t colonPos = colInfo.find(':');
+
+                if (colInfo == "where") {
+                    isWhereClause = true;
+                    continue;
+                }
+
+                if (colonPos != std::string::npos) {
+                    std::string colName = colInfo.substr(0, colonPos);
+                    std::string colValue = colInfo.substr(colonPos + 1);
+
+                    if (isWhereClause) {
+                        whereClause[colName] = colValue;
+                    } else {
+                        selectClause.push_back(colName);
+                    }
+
+                } else {
+                    fmt::print("Error: Invalid column format in command\n");
+                    break;
                 }
             }
 
 
-                std::map<std::string, std::string> whereClause;
-
-                while (iss >> colInfo) {
-                    size_t colonPos = colInfo.find(':');
-                    if (colonPos != std::string::npos) {
-                        colName = colInfo.substr(0, colonPos);
-                        colValue = colInfo.substr(colonPos + 1);
-                        whereClause[colName] = colValue;
-                    } else {
-                        fmt::print("Error: Invalid column format in WHERE clause\n");
-                    }
-                }
-
-
-                database.updatedata(tableName, updateData, whereClause);
-
+            database.query(tablename, selectClause, whereClause);
         }
 
+
+
+        else if(cmd=="delete"){
+            std::string tableName;
+            iss >> tableName;
+
+            std::map<std::string, std::string> whereClause;
+            std::string colInfo;
+
+            while(iss >> colInfo){
+                size_t colonPos = colInfo.find(':');
+                if (colonPos != std::string::npos) {
+                    std::string colName = colInfo.substr(0, colonPos);
+                    std::string colValue = colInfo.substr(colonPos + 1);
+                    whereClause[colName] = colValue;
+                } else {
+                    fmt::print("Error: Invalid column format in command\n");
+                    break;
+                }
+            }
+
+            database.deleteData(tableName, whereClause);
+
+        }
         else if (cmd == "save") {
             std::string filename;
             iss >> filename;
@@ -255,13 +414,17 @@ int main() {
 
 /*
 
-createTable Employees ID int Name string Salary double Department string
-        insert Employees ID:1 Name:John Salary:50000 Department:HR
-        update Employees Name:Artur ,where ID:1
+        createTable Employees ID int Name string Salary double Department string
+        insert Employees ID:3 Name:John Salary:50000 Department:HR
+        update Employees Name:Artur ID:4 where ID:2
+        query Employees where ID:2
+        query Employees Name: Salary: where ID:2
+        delete Employees ID:1
+        addColumn Employees NazwaKolumny int
 
 
-save a.txt
+        save a.txt
 
-exit
+        exit
 
 */
