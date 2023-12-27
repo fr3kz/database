@@ -1,7 +1,1 @@
-Table: Employees
-  ID (int)
-  Name (string)
-  Salary (double)
-  Department (string)
-  ID: 4, Name: Artur, Salary: 50000, Department: HR, 
-  ID: 3, Name: John, Salary: 50000, Department: HR, 
+T

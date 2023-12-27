@@ -415,12 +415,12 @@ int main() {
 /*
 
         createTable Employees ID int Name string Salary double Department string
-        insert Employees ID:3 Name:John Salary:50000 Department:HR
+        insert Employees ID:1 Name:John Salary:50000 Department:HR
         update Employees Name:Artur ID:4 where ID:2
-        query Employees where ID:2
+        query Employees where Name:John
         query Employees Name: Salary: where ID:2
         delete Employees ID:1
-        addColumn Employees NazwaKolumny int
+        addColumn Employees Age int
 
 
         save a.txt
