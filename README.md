@@ -19,12 +19,17 @@ Compile the project using the following command:
 g++ -std=c++14 -o database main.cpp -lfmt
 ```
 ### Example Commands
--createTable Employees ID int Name string Salary double Department string
--addColumn Employees PhoneNumber int
--insert Employees ID:2 Name:John Salary:50000 Department:HR
--update Employees Name:Artur ID:4 where ID:2
--query Employees where Name:John
--query Employees Name: Salary: where ID:2
--delete Employees ID:1
--save backup.txt
--exit
+- createTable Employees ID int Name string Salary double Department string
+- addColumn Employees PhoneNumber int
+- insert Employees ID:2 Name:John Salary:50000 Department:HR
+- update Employees Name:Artur ID:4 where ID:2
+- query Employees where Name:John
+- query Employees Name: Salary: where ID:2
+- delete Employees ID:1
+- save backup.txt
+- exit
+
+###Przyklad
+
+![Alt Text](https://github.com/fr3kz/database/blob/main/Zrzut%20ekranu%202023-12-27%20o%2018.30.49.png)
+
